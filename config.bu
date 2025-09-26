@@ -1,0 +1,39 @@
+variant: fcos
+version: 1.6.0
+passwd:
+  users:
+    - name: core
+      ssh_authorized_keys:
+        - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDixgmi6yxyYmkok37WUtOr6x1R2kGcsUsST5ewC7Xjh nousername"
+      groups:
+        - wheel
+        - sudo
+        - docker
+storage:
+  files:
+    - path: /etc/hostname
+      mode: 0644
+      contents:
+        inline: coreos-devex
+systemd:
+  units:
+    - name: "install-qemu-guest-agent.service"
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Ensure qemu-guest-agent is installed
+        Wants=network-online.target
+        After=network-online.target
+        Before=zincati.service
+        ConditionPathExists=!/var/lib/%N.stamp
+
+
+        [Service]
+        Type=oneshot
+        RemainAfterExit=yes
+        ExecStart=rpm-ostree install --allow-inactive --assumeyes --reboot qemu-guest-agent
+        ExecStart=/bin/touch /var/lib/%N.stamp
+
+
+        [Install]
+        WantedBy=multi-user.target
