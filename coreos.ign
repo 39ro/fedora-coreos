@@ -1,14 +1,12 @@
 {
   "ignition": {
-    "version": "3.5.0"
+    "version": "3.4.0"
   },
   "passwd": {
     "users": [
       {
         "groups": [
-          "wheel",
-          "sudo",
-          "docker"
+          "wheel"
         ],
         "name": "core",
         "sshAuthorizedKeys": [
@@ -23,7 +21,31 @@
         "path": "/etc/hostname",
         "contents": {
           "compression": "",
-          "source": "data:,coreos-devex"
+          "source": "data:,k8s-node"
+        },
+        "mode": 420
+      },
+      {
+        "path": "/etc/yum.repos.d/kubernetes.repo",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/5TMzarCMBDF8f08TOaWu5FCnsBHEJG0PaQy+Rgyqdi3l7oQt+7O+S9+F9kmtIIOu1IJGf78CTQFw9aSX3tXG5lVojk5mbtXnmvDyNbDlDDyY3D/f9w0M6EcafEDRY3ziln8QA1ab18/ahTsP8EHsYQe3iMv7pmTE+z0CgAA///WaEbGwgAAAA=="
+        },
+        "mode": 420
+      },
+      {
+        "path": "/etc/modules-load.d/k8s.conf",
+        "contents": {
+          "compression": "",
+          "source": "data:,overlay%0Abr_netfilter%0A"
+        },
+        "mode": 420
+      },
+      {
+        "path": "/etc/sysctl.d/k8s.conf",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/8pLLdFLKspMSU+FUrp5abrJiTk5upkFZiWJSTmpxQq2CoZc+NShKcssKDPRyyyIT8svKk8sSgGLAwIAAP//5C49v2cAAAA="
         },
         "mode": 420
       }
@@ -32,9 +54,21 @@
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=Ensure qemu-guest-agent is installed\nWants=network-online.target\nAfter=network-online.target\nBefore=zincati.service\nConditionPathExists=!/var/lib/%N.stamp\n\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStart=rpm-ostree install --allow-inactive --assumeyes --reboot qemu-guest-agent\nExecStart=/bin/touch /var/lib/%N.stamp\n\n\n[Install]\nWantedBy=multi-user.target",
+        "contents": "[Unit]\nDescription=Install Kubernetes packages\nRequires=rpm-ostreed.service\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl\nExecStart=/usr/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
-        "name": "install-qemu-guest-agent.service"
+        "name": "install-k8s.service"
+      },
+      {
+        "enabled": true,
+        "name": "crio.service"
+      },
+      {
+        "enabled": true,
+        "name": "kubelet.service"
+      },
+      {
+        "enabled": true,
+        "name": "qemu-guest-agent.service"
       }
     ]
   }
