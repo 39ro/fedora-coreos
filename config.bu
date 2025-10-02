@@ -19,11 +19,11 @@ storage:
         inline: |
           [kubernetes]
           name=Kubernetes
-          baseurl=https://pkgs.k8s.io/core:/stable:/v1.30/rpm/
+          baseurl=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/
           enabled=1
           gpgcheck=1
           repo_gpgcheck=1
-          gpgkey=https://pkgs.k8s.io/core:/stable:/v1.30/rpm/repodata/repomd.xml.key
+          gpgkey=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/repodata/repomd.xml.key
     - path: /etc/modules-load.d/k8s.conf
       mode: 0644
       contents:
@@ -52,7 +52,7 @@ systemd:
         [Service]
         Type=oneshot
         ExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl
-        ExecStart=/usr/bin/touch /var/lib/%N.stamp
+        ExecStartPost=/usr/bin/touch /var/lib/%N.stamp
 
         [Install]
         WantedBy=multi-user.target
