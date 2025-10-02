@@ -62,12 +62,12 @@
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nRequires=crio.service kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl\nExecStartPost=/usr/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nDescription=Install Kubernetes packages\nRequires=rpm-ostreed.service\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl\nExecStartPost=/usr/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "install-k8s.service"
       },
       {
-        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nWants=crio.service kubelet.service\nAfter=crio.service kubelet.service\n# This ensures the service only runs once.\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nRequires=crio.service kubelet.service\nAfter=crio.service kubelet.service\n# This ensures the service only runs once.\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "kubeadm-init.service"
       },

@@ -59,12 +59,11 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        Description=Initialize Kubernetes cluster
+        Description=Install Kubernetes packages
+        Requires=rpm-ostreed.service
         After=rpm-ostreed.service network-online.target
         Wants=network-online.target
-        Requires=crio.service kubelet.service
-        After=crio.service kubelet.service
-        ConditionPathExists=!/etc/kubernetes/admin.conf
+        ConditionPathExists=!/var/lib/%N.stamp
 
         [Service]
         Type=oneshot
@@ -78,7 +77,9 @@ systemd:
       contents: |
         [Unit]
         Description=Initialize Kubernetes cluster
-        Wants=crio.service kubelet.service
+        After=rpm-ostreed.service network-online.target
+        Wants=network-online.target
+        Requires=crio.service kubelet.service
         After=crio.service kubelet.service
         # This ensures the service only runs once.
         ConditionPathExists=!/etc/kubernetes/admin.conf
