@@ -59,11 +59,12 @@ systemd:
       enabled: true
       contents: |
         [Unit]
-        Description=Install Kubernetes packages
-        Requires=rpm-ostreed.service
+        Description=Initialize Kubernetes cluster
         After=rpm-ostreed.service network-online.target
         Wants=network-online.target
-        ConditionPathExists=!/var/lib/%N.stamp
+        Requires=crio.service kubelet.service
+        After=crio.service kubelet.service
+        ConditionPathExists=!/etc/kubernetes/admin.conf
 
         [Service]
         Type=oneshot
