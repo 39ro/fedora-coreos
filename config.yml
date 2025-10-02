@@ -37,6 +37,22 @@ storage:
           net.bridge.bridge-nf-call-ip6tables = 1
           net.bridge.bridge-nf-call-iptables = 1
           net.ipv4.ip_forward = 1
+    - path: /etc/kubernetes/kubeadm-config.yaml
+      mode: 0644
+      contents:
+        inline: |
+          apiVersion: kubeadm.k8s.io/v1beta3
+          kind: InitConfiguration
+          nodeRegistration:
+            criSocket: "unix:///var/run/crio/crio.sock"
+          ---
+          apiVersion: kubeadm.k8s.io/v1beta3
+          kind: ClusterConfiguration
+          networking:
+            podSubnet: "192.168.0.0/16"
+          controllerManager:
+            extraArgs:
+              flex-volume-plugins-dir: "/var/lib/kubelet/volumeplugins"
 systemd:
   units:
     - name: install-k8s.service
@@ -53,6 +69,22 @@ systemd:
         Type=oneshot
         ExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl
         ExecStartPost=/usr/bin/touch /var/lib/%N.stamp
+
+        [Install]
+        WantedBy=multi-user.target
+    - name: kubeadm-init.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Initialize Kubernetes cluster
+        Wants=crio.service kubelet.service
+        After=crio.service kubelet.service
+        # This ensures the service only runs once.
+        ConditionPathExists=!/etc/kubernetes/admin.conf
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml
 
         [Install]
         WantedBy=multi-user.target
