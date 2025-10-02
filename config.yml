@@ -81,7 +81,6 @@ systemd:
         Wants=network-online.target
         Requires=crio.service kubelet.service
         After=crio.service kubelet.service
-        # This ensures the service only runs once.
         ConditionPathExists=!/etc/kubernetes/admin.conf
 
         [Service]
