@@ -53,7 +53,15 @@
         "path": "/etc/kubernetes/kubeadm-config.yaml",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/4yPsW7rMAxFd32F4F1S/PAQpNqKTB26NEB32WIEQgppUJLrzy/sdOrUhQCJS5xzw4KfIBWZvM59ghAfNl+qRXbrOEEL/1VGil6/EbYr0x1Tl9CQSRFH+ICEtT0PXmk9C954ztC8Hjrh5p1zaxAnndwsyMewlec8KGOM+jP+WnptIL8MoH2xZKS0sxeOtz7RwR5f/tnxfLEne3LjeVAzUxMuBeQ9UEgg+wNsTcKrpLovWt8LbGbl0h9gltITUjURxevhqFBwcrtigeaeqZ/QoL4DAAD//5qgJx1FAQAA"
+          "source": "data:;base64,H4sIAAAAAAAC/4yPsWrEMAyGdz+Fud32pZTjGuhQburQpQfdnURnhH1SkOU0j1+S69Spi0DiF9/3xxm/QCoy9Ta3AeJ09/lcPXJYugE0PpuMNPX2nVAvTDdMTaIikyGe4BMSVn0cemPtKHjlMYP29tAI1z6EsEQJ0iiMgrwPX3nMB+OcM//GX0qrCvLHAPSbJSOljT3zdG0D7ezu5cl3p7M/+mPoTgczMqlwKSAfkWIC2R5gVYlvkuq2WOusc7cCq1u4tDu4ubSEVN2E8rqXKDiETbKAhkfmN2J+AgAA//+mB1/DRgEAAA=="
+        },
+        "mode": 420
+      },
+      {
+        "path": "/etc/systemd/system/kubelet.service.d/05-local.conf",
+        "contents": {
+          "compression": "",
+          "source": "data:,%5BService%5D%0AExecStart%3D%0AExecStart%3D%2Fusr%2Fbin%2Fkubelet%20--container-runtime-endpoint%3Dunix%3A%2F%2F%2Fvar%2Frun%2Fcrio%2Fcrio.sock%20--cgroup-driver%3Dsystemd%0A"
         },
         "mode": 420
       }

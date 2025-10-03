@@ -52,7 +52,16 @@ storage:
             podSubnet: "192.168.0.0/16"
           controllerManager:
             extraArgs:
-              flex-volume-plugins-dir: "/var/lib/kubelet/volumeplugins"
+              - --flex-volume-plugins-dir=/var/lib/kubelet/volumeplugins
+    - path: /etc/systemd/system/kubelet.service.d/05-local.conf
+      mode: 0644
+      contents:
+        inline: |
+          [Service]
+          ExecStart=
+          ExecStart=/usr/bin/kubelet --container-runtime-endpoint=unix:///var/run/crio/crio.sock --cgroup-driver=systemd
+
+
 systemd:
   units:
     - name: install-k8s.service
