@@ -53,14 +53,19 @@ storage:
           controllerManager:
             extraArgs:
               - --flex-volume-plugins-dir=/var/lib/kubelet/volumeplugins
-    - path: /etc/systemd/system/kubelet.service.d/05-local.conf
+    - path: /var/lib/kubelet/config.yaml
       mode: 0644
       contents:
         inline: |
-          [Service]
-          ExecStart=
-          ExecStart=/usr/bin/kubelet --container-runtime-endpoint=unix:///var/run/crio/crio.sock --cgroup-driver=systemd
-
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          kind: KubeletConfiguration
+          cgroupDriver: systemd
+          containerRuntimeEndpoint: "unix:///var/run/crio/crio.sock"
+    - path: /var/lib/kubelet/kubeadm-flags.env
+      mode: 0644
+      contents:
+        inline: |
+          KUBELET_KUBEADM_ARGS="--config=/var/lib/kubelet/config.yaml"
 
 systemd:
   units:
