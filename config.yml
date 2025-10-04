@@ -57,13 +57,14 @@ storage:
           ---
           apiVersion: kubelet.config.k8s.io/v1beta1
           kind: KubeletConfiguration
-          cgroupDriver: "systemd"
           volumePluginDir: "/var/lib/kubelet/volumeplugins"
+          cgroupDriver: "systemd"
           ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: ClusterConfiguration
           networking:
             podSubnet: "10.244.0.0/16"
+
     - path: /var/lib/kubelet/config.yaml
       mode: 0644
       contents:

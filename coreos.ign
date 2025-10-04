@@ -61,7 +61,7 @@
         "path": "/etc/kubernetes/kubeadm-config.yaml",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/3SQsWr0MBAGez2FcG/J/jE/Qe1dE9KEHKS35Y1ZJO+aleQkbx9OvuaOpFGh/WCGGTd8B0nI5HQoE4zzasJTMsh27yfI46AC0uz0M2E+MX3gUmTMyKSIZ3iDBVM+PpzS2gte2AfITjeF8MtZa/dRrBSyXpDrYxL70Ki2bdUjPkI2vlLuLfqbxcuxuRfxi3DZzoI7iNNN+k4Z1rlRO8eywmssC9IZr6fqEnGyN5Y9JludpN+V/ixyiiVlkIcokD9ZAtJyzbHxfCkT1Rx9Z/4Ng+lMZ/v/jfoJAAD//5cjCjZ5AQAA"
+          "source": "data:;base64,H4sIAAAAAAAC/3SQsWr0MBAGez2FcG/J/jE/Qe1dE9KEHKS35Y1ZJO+aleQkbx9OvuaOpFEhhv2GGTd8B0nI5HQoE4zzasJTMsh27yfI46AC0uz0M2E+MX3gUmTMyKSIZ3iDBVM+PpzS2gte2AfITjeF8MtZa/dRrBSyXpDrYxL70Ki2bdXjfIRsfF25t+hvFi8Hcy+ycywrvMayIJ1RnG7qZsTJ3m7aA9kqkhrlF+GynQV3uOLpO2VY59+V/ixyiiVlkIcokD9ZAtJyzbHxfCkT1Rx9Z/4Ng+lMZ/v/jfoJAAD//8CEXRp5AQAA"
         },
         "mode": 420
       },
