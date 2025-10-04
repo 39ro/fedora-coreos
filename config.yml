@@ -55,14 +55,15 @@ storage:
           nodeRegistration:
             criSocket: "unix:///var/run/crio/crio.sock"
           ---
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          kind: KubeletConfiguration
+          cgroupDriver: "systemd"
+          volumePluginDir: "/var/lib/kubelet/volumeplugins"
+          ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: ClusterConfiguration
           networking:
-            podSubnet: "192.168.0.0/16"
-          controllerManager:
-            extraArgs:
-              - name: flex-volume-plugins-dir
-                value: /var/lib/kubelet/volumeplugins
+            podSubnet: "10.244.0.0/16"
     - path: /var/lib/kubelet/config.yaml
       mode: 0644
       contents:
@@ -93,26 +94,28 @@ systemd:
         
         [Install]
         WantedBy=multi-user.target
-    - name: kubeadm-init.service
-      enabled: true
-      contents: |
-        [Unit]
-        Description=Initialize Kubernetes cluster
-        After=rpm-ostreed.service network-online.target
-        Wants=network-online.target
-        Requires=crio.service kubelet.service
-        After=crio.service kubelet.service
-        ConditionPathExists=!/etc/kubernetes/admin.conf
-
-        [Service]
-        Type=oneshot
-        ExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml
-
-        [Install]
-        WantedBy=multi-user.target
     - name: crio.service
       enabled: true
     - name: kubelet.service
       enabled: true
     - name: qemu-guest-agent.service
       enabled: true
+    - name: kubeadm-init.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=Initialize Kubernetes cluster
+        Requires=crio.service kubelet.service
+        After=crio.service kubelet.service
+        ConditionPathExists=!/etc/kubernetes/admin.conf
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs
+        ExecStartPost=/bin/mkdir -p /home/core/.kube
+        ExecStartPost=/bin/cp -i /etc/kubernetes/admin.conf /home/core/.kube/config
+        ExecStartPost=/bin/chown -R core:core /home/core/.kube
+        ExecStartPost=/bin/bash -c "KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
+        
+        [Install]
+        WantedBy=multi-user.target

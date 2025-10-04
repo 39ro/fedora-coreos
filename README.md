@@ -17,14 +17,10 @@ docker run --interactive --rm --security-opt label=disable --volume "${PWD}:/pwd
 
 ## K8S
 
-### Enable crio.service
+### crio.service
 CRI-O is the engine that runs your containers, and the CRI is the standard language it uses to take orders from Kubernetes.
 
 **How we use it:** We install it on the node and tell the `kubelet` to talk to it by pointing to its communication file (the "socket" at /var/run/crio/crio.sock)
-
-```shell
-sudo systemctl enable crio.service && sudo systemctl start crio.service
-```
 
 ### Start a cluster
 
@@ -51,3 +47,40 @@ Think of it as a private neighborhood for your applications to live in.The Most 
 The IP range you choose for your Pods must not overlap with any other networks your VM can see. This includes:1.Your VM's Network: The IP address of your k8s-node VM (e.g., 192.168.1.123) should not be inside the Pod network range.2.Your Proxmox Host Network: The IP of your Proxmox server itself.3.Your Home/Office Network (LAN): The network your computer and Proxmox server are on (e.g., 192.168.1.0/24).
 
 The range 192.168.0.0/16 is a massive range that includes all IPs from 192.168.0.1 to 192.168.255.254. Since most home networks use a small slice like 192.168.1.x, choosing the larger 192.168.0.0/16 for Pods is generally very safe because it doesn't conflict.
+
+
+
+### Admin conf file
+
+#### Copy to your local machine
+
+Inside the VM, run these two commands
+
+First, copy the file to your home directory:
+
+`sudo cp /etc/kubernetes/admin.conf /home/core/admin.conf`
+
+Second, change the owner of the new copy so you can read it:
+
+`sudo chown core:core /home/core/admin.conf`
+
+On your local machine, run the new scp command
+
+`scp core@192.168.0.50:/home/core/admin.conf ./kubeconfig`
+
+#### Edit the copied kubeconfig file
+
+The copied file contains an IP address that needs to be updated.
+
+1.Open the kubeconfig-k8s-node file on your local machine in a text editor.
+2.Find the server: line. 
+It will look something like this:
+
+```yaml
+YAMLclusters:
+- cluster:
+  certificate-authority-data: <REDACTED_DATA>
+  server: https://10.0.2.15:6443  # <-- CHANGE TO YOU YOUR VM'S IP ADDRESS
+  name: kubernetes3.Change the IP address in the server: field to your VM's actual, reachable IP address.YAMLclusters:
+- cluster:
+```

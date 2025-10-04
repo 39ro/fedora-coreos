@@ -61,7 +61,7 @@
         "path": "/etc/kubernetes/kubeadm-config.yaml",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/4yPsW7rMAxFd30FkV1S/PAQpNqKTB26NEB32WYEQgoZUJLrzy/sdOrUhQCJe3EO44M+USsJB8h9xDjfXT5XR+KXYcQW/5tMPAd4Y2oX4RulrrGRsGGZ8QMT1fY8BAMwKV1lytgCHDrTGrz3S1Svnf2kJPtwVaZ8MNZa82f8pfTaUH8ZYPsSzcRpYz9kvvaRd/bw8s8Np7M7uqMfTgczCTeVUlDfI8eEuhVwbRpfNdVtAbDA8Y4BbgVXu0jpd7SP0hNxtTPpngFYYukYYP+q0Og364LNPws/efMdAAD//5kwz0pXAQAA"
+          "source": "data:;base64,H4sIAAAAAAAC/3SQsWr0MBAGez2FcG/J/jE/Qe1dE9KEHKS35Y1ZJO+aleQkbx9OvuaOpFGh/WCGGTd8B0nI5HQoE4zzasJTMsh27yfI46AC0uz0M2E+MX3gUmTMyKSIZ3iDBVM+PpzS2gte2AfITjeF8MtZa/dRrBSyXpDrYxL70Ki2bdUjPkI2vlLuLfqbxcuxuRfxi3DZzoI7iNNN+k4Z1rlRO8eywmssC9IZr6fqEnGyN5Y9JludpN+V/ixyiiVlkIcokD9ZAtJyzbHxfCkT1Rx9Z/4Ng+lMZ/v/jfoJAAD//5cjCjZ5AQAA"
         },
         "mode": 420
       },
@@ -83,11 +83,6 @@
         "name": "install-k8s.service"
       },
       {
-        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nRequires=crio.service kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml\n\n[Install]\nWantedBy=multi-user.target\n",
-        "enabled": true,
-        "name": "kubeadm-init.service"
-      },
-      {
         "enabled": true,
         "name": "crio.service"
       },
@@ -98,6 +93,11 @@
       {
         "enabled": true,
         "name": "qemu-guest-agent.service"
+      },
+      {
+        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nRequires=crio.service kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs\nExecStartPost=/bin/mkdir -p /home/core/.kube\nExecStartPost=/bin/cp -i /etc/kubernetes/admin.conf /home/core/.kube/config\nExecStartPost=/bin/chown -R core:core /home/core/.kube\nExecStartPost=/bin/bash -c \"KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-\"\n\n[Install]\nWantedBy=multi-user.target",
+        "enabled": true,
+        "name": "kubeadm-init.service"
       }
     ]
   }
