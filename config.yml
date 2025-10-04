@@ -22,8 +22,17 @@ storage:
           baseurl=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/
           enabled=1
           gpgcheck=1
-          repo_gpgcheck=1
           gpgkey=https://pkgs.k8s.io/core:/stable:/v1.34/rpm/repodata/repomd.xml.key
+    - path: /etc/yum.repos.d/cri-o.repo
+      mode: 0644
+      contents:
+        inline: |
+          [cri-o]
+          name=CRI-O
+          baseurl=https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.34/rpm/
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://download.opensuse.org/repositories/isv:/cri-o:/stable:/v1.34/rpm/repodata/repomd.xml.key
     - path: /etc/modules-load.d/k8s.conf
       mode: 0644
       contents:
@@ -52,7 +61,8 @@ storage:
             podSubnet: "192.168.0.0/16"
           controllerManager:
             extraArgs:
-              - --flex-volume-plugins-dir=/var/lib/kubelet/volumeplugins
+              - name: flex-volume-plugins-dir
+                value: /var/lib/kubelet/volumeplugins
     - path: /var/lib/kubelet/config.yaml
       mode: 0644
       contents:
@@ -61,11 +71,6 @@ storage:
           kind: KubeletConfiguration
           cgroupDriver: systemd
           containerRuntimeEndpoint: "unix:///var/run/crio/crio.sock"
-    - path: /var/lib/kubelet/kubeadm-flags.env
-      mode: 0644
-      contents:
-        inline: |
-          KUBELET_KUBEADM_ARGS="--config=/var/lib/kubelet/config.yaml"
 
 systemd:
   units:
@@ -81,9 +86,11 @@ systemd:
 
         [Service]
         Type=oneshot
+        TimeoutStartSec=0
         ExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl
         ExecStartPost=/usr/bin/touch /var/lib/%N.stamp
-
+        ExecStartPost=/usr/bin/systemctl reboot
+        
         [Install]
         WantedBy=multi-user.target
     - name: kubeadm-init.service

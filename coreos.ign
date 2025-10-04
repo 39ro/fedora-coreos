@@ -29,7 +29,15 @@
         "path": "/etc/yum.repos.d/kubernetes.repo",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/5TMzarCMBDF8f08TIZy70IKeQIfQUTS9pDK5GPIpGLfXupC3Lo757/4XWSb0Ao67EolZPjzJ9AUDFtLfu1dbWRWiebkZO5eea4NI1sPU8LIj8H9/XPTzIRypMUPFDXOK2bxAzVovX39qFGw/wQfxBJ6eI+8uGdOTrDTKwAA//+Pu71GwgAAAA=="
+          "source": "data:;base64,H4sIAAAAAAAC/5TMOwoCMRRG4T6LyWXQQgJZgUsQizx+MnLzIjcjzu5FBfvpDl9xbrx5jIoJuavqCuz1D8o7wTayXefsYog6J9F8Ef1oFNqAIZnOZxh6Lvp0ptELKdQPRbuo1FNYEfiXjP3QaKC36Kb7Ron6VbJm7OodAAD//x8ErPCyAAAA"
+        },
+        "mode": 420
+      },
+      {
+        "path": "/etc/yum.repos.d/cri-o.repo",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/6zNParDMBAE4F53sRbzXiVwlSpVIG1IsbYWW+hnxa7sxLcPdq6Q7mMYZh6ThI6fpmCm4XK/djczotIqaVhaq+oAPL9KYvSWKxVdlSzLDEKVNTSWQApBNwfnkgNtOCZysPX27x+kZjBUjsgPvZnrPC00xS8j7b97OaoeG57I3r5zspF28wkAAP//+6g6auIAAAA="
         },
         "mode": 420
       },
@@ -53,7 +61,7 @@
         "path": "/etc/kubernetes/kubeadm-config.yaml",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/4yPsWrEMAyGdz+Fud32pZTjGuhQburQpQfdnURnhH1SkOU0j1+S69Spi0DiF9/3xxm/QCoy9Ta3AeJ09/lcPXJYugE0PpuMNPX2nVAvTDdMTaIikyGe4BMSVn0cemPtKHjlMYP29tAI1z6EsEQJ0iiMgrwPX3nMB+OcM//GX0qrCvLHAPSbJSOljT3zdG0D7ezu5cl3p7M/+mPoTgczMqlwKSAfkWIC2R5gVYlvkuq2WOusc7cCq1u4tDu4ubSEVN2E8rqXKDiETbKAhkfmN2J+AgAA//+mB1/DRgEAAA=="
+          "source": "data:;base64,H4sIAAAAAAAC/4yPsW7rMAxFd30FkV1S/PAQpNqKTB26NEB32WYEQgoZUJLrzy/sdOrUhQCJe3EO44M+USsJB8h9xDjfXT5XR+KXYcQW/5tMPAd4Y2oX4RulrrGRsGGZ8QMT1fY8BAMwKV1lytgCHDrTGrz3S1Svnf2kJPtwVaZ8MNZa82f8pfTaUH8ZYPsSzcRpYz9kvvaRd/bw8s8Np7M7uqMfTgczCTeVUlDfI8eEuhVwbRpfNdVtAbDA8Y4BbgVXu0jpd7SP0hNxtTPpngFYYukYYP+q0Og364LNPws/efMdAAD//5kwz0pXAQAA"
         },
         "mode": 420
       },
@@ -64,21 +72,13 @@
           "source": "data:,apiVersion%3A%20kubelet.config.k8s.io%2Fv1beta1%0Akind%3A%20KubeletConfiguration%0AcgroupDriver%3A%20systemd%0AcontainerRuntimeEndpoint%3A%20%22unix%3A%2F%2F%2Fvar%2Frun%2Fcrio%2Fcrio.sock%22%0A"
         },
         "mode": 420
-      },
-      {
-        "path": "/var/lib/kubelet/kubeadm-flags.env",
-        "contents": {
-          "compression": "",
-          "source": "data:,KUBELET_KUBEADM_ARGS%3D%22--config%3D%2Fvar%2Flib%2Fkubelet%2Fconfig.yaml%22%0A"
-        },
-        "mode": 420
       }
     ]
   },
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=Install Kubernetes packages\nRequires=rpm-ostreed.service\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl\nExecStartPost=/usr/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nDescription=Install Kubernetes packages\nRequires=rpm-ostreed.service\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nTimeoutStartSec=0\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl\nExecStartPost=/usr/bin/touch /var/lib/%N.stamp\nExecStartPost=/usr/bin/systemctl reboot\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "install-k8s.service"
       },
