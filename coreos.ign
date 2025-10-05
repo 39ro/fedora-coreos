@@ -61,7 +61,7 @@
         "path": "/etc/crio/crio.conf.d/01-cni.conf",
         "contents": {
           "compression": "",
-          "source": "data:;base64,W2NyaW8ubmV0d29ya10KcGx1Z2luX2RpcnMgPSBbCiAgIi91c3IvbGliZXhlYy9jbmkiCl0K"
+          "source": "data:;base64,W2NyaW8ubmV0d29ya10KcGx1Z2luX2RpcnMgPSBbCiAgIi9vcHQvY25pL2Jpbi8iLAogICIvdXNyL2xpYmV4ZWMvY25pIgpdCg=="
         },
         "mode": 420
       },

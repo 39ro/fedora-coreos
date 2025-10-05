@@ -52,6 +52,7 @@ storage:
         inline: |
           [crio.network]
           plugin_dirs = [
+            "/opt/cni/bin/",
             "/usr/libexec/cni"
           ]
     - path: /etc/kubernetes/kubeadm-config.yaml
