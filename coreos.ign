@@ -64,6 +64,14 @@
           "source": "data:;base64,H4sIAAAAAAAC/6yRMWvkMBCFe/0K4d6SfWeOw13YTRFCIOxCetmeNYPlGTOSnM2/D5aXQLZKkUag4eO9efPcgm8gAZlaPaUOPETTM11wNNP/YJDtWncQXa0mpKHVzztzyEgSF5FJrezTDK8+jUhHlFYXdnViPXb2pml3ZMlIKFQ/CqflKLjChoePEGEeCtUzRYcEckoUcYZHGhZGiq0uEuG1tTYrSyLbC3J+TOB+KlRZluo+jRvm7zGaW4wnwrsMxAOcYMQQ90GrtO4Fz9xP8Ov2B59CBLnbAOI7y4Q0bt4LD+fUUfauK/OnaUxlKlv/K9QmLQQRwpdbbf42psrnE/Ye5MWRG0E2JbhGcQ8yhu2jdanJzdDqi4druddS7r2UA0pGtF6dT/CDHj8DAAD//3+iCSc/AgAA"
         },
         "mode": 420
+      },
+      {
+        "path": "/usr/local/bin/kubeadm-post-init.sh",
+        "contents": {
+          "compression": "gzip",
+          "source": "data:;base64,H4sIAAAAAAAC/4yQQWsjMQyF7/4V2viwl/X4vrCXDU0phRZa8gMcW8mYeCxjaQj598VOIElTSm8j6c17z5/+ZTcxWx4Vo4BBhX4kWGitYRVz5BED7OcNujBBzFH+AKNIzDuYSz94ytu4A631QikN7yifLluqICOCp4owM1ag3BeZAqppH2IFU8CONKFtIju0v5UvYFG8bUPNKMjWhSnmofneye0pTfmRDhnMW4/72zPvnJWGdRYXs5yLZamUTEkun1qBELiU6ACFArdpg8B+xDAnDK1/FPW8/v+wfH1ZPT3++67nzLUT7kQkwSm3pTAY41Lq36ZSwuFiMUSyN71Ma72kcoQrc6Fbsr8Z2ls7cnR8BPYFnPfI/HOcl+0Z5pckr1QfAQAA//+uQBooQwIAAA=="
+        },
+        "mode": 493
       }
     ]
   },
@@ -87,7 +95,7 @@
         "name": "qemu-guest-agent.service"
       },
       {
-        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nRequires=crio.service\nWants=kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStartPre=/bin/echo \"### CRIO status ###\"\nExecStartPre=/usr/bin/systemctl --no-pager status crio.service\nExecStartPre=/bin/echo \"### Kubelet status ###\"\nExecStartPre=/usr/bin/systemctl --no-pager status kubelet.service\nExecStartPre=/bin/echo \"### Starting kubeadm init ###\"\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs\nExecStartPost=/bin/echo \"### Finished kubeadm init ###\"\nExecStartPost=/bin/mkdir -p /home/core/.kube\nExecStartPost=/bin/cp -i /etc/kubernetes/admin.conf /home/core/.kube/config\nExecStartPost=/bin/chown -R core:core /home/core/.kube\nExecStartPost=/bin/bash -c \"KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-\"\n\n[Install]\nWantedBy=multi-user.target",
+        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nRequires=crio.service\nWants=kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs\nExecStartPost=/usr/local/bin/kubeadm-post-init.sh\n\n[Install]\nWantedBy=multi-user.target",
         "enabled": true,
         "name": "kubeadm-init.service"
       }

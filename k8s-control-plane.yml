@@ -70,6 +70,25 @@ storage:
             extraArgs:
               - name: flex-volume-plugin-dir
                 value: "/var/lib/kubelet/volumeplugins"
+    - path: /usr/local/bin/kubeadm-post-init.sh
+      mode: 0755
+      contents:
+        inline: |
+          #!/bin/sh
+          set -e
+          echo "### Finished kubeadm init, setting up kubeconfig ###"
+          
+          # Set up kubeconfig for the core user on the node
+          mkdir -p /home/core/.kube
+          cp /etc/kubernetes/admin.conf /home/core/.kube/config
+          chown -R core:core /home/core/.kube
+          
+          # Untaint the control-plane node to allow pods to be scheduled on it
+          KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+          
+          # Copy admin.conf to the core user's home for easy scp access
+          cp /etc/kubernetes/admin.conf /home/core/admin.conf
+          chown core:core /home/core/admin.conf
 systemd:
   units:
     - name: install-k8s.service
@@ -108,17 +127,8 @@ systemd:
 
         [Service]
         Type=oneshot
-        ExecStartPre=/bin/echo "### CRIO status ###"
-        ExecStartPre=/usr/bin/systemctl --no-pager status crio.service
-        ExecStartPre=/bin/echo "### Kubelet status ###"
-        ExecStartPre=/usr/bin/systemctl --no-pager status kubelet.service
-        ExecStartPre=/bin/echo "### Starting kubeadm init ###"
         ExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs
-        ExecStartPost=/bin/echo "### Finished kubeadm init ###"
-        ExecStartPost=/bin/mkdir -p /home/core/.kube
-        ExecStartPost=/bin/cp -i /etc/kubernetes/admin.conf /home/core/.kube/config
-        ExecStartPost=/bin/chown -R core:core /home/core/.kube
-        ExecStartPost=/bin/bash -c "KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
+        ExecStartPost=/usr/local/bin/kubeadm-post-init.sh
 
         [Install]
         WantedBy=multi-user.target
