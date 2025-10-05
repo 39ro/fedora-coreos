@@ -46,6 +46,14 @@ storage:
           net.bridge.bridge-nf-call-ip6tables = 1
           net.bridge.bridge-nf-call-iptables = 1
           net.ipv4.ip_forward = 1
+    - path: /etc/crio/crio.conf.d/01-cni.conf
+      mode: 0644
+      contents:
+        inline: |
+          [crio.network]
+          plugin_dirs = [
+            "/usr/libexec/cni"
+          ]
     - path: /etc/kubernetes/kubeadm-config.yaml
       mode: 0644
       contents:
@@ -77,11 +85,35 @@ storage:
           #!/bin/sh
           set -e
           echo "### Finished kubeadm init, setting up kubeconfig ###"
-          
-          cp /etc/kubernetes/admin.conf home/core/.kube/config
-          
+
+          mkdir -p /home/core/.kube
+          cp /etc/kubernetes/admin.conf /home/core/.kube/config
+          chown core:core /home/core/.kube/config
+
+          export KUBECONFIG=/etc/kubernetes/admin.conf
+
+          # Wait for the API server to be ready
+          echo "### Waiting for Kubernetes API server... ###"
+          i=0
+          while ! /usr/bin/kubectl get nodes >/dev/null 2>&1; do
+            i=$((i+1))
+            if [ $i -gt 12 ]; then
+              echo "API server did not come up after 2 minutes"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "### API server is ready. ###"
+
           # Untaint the control-plane node to allow pods to be scheduled on it
-          KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+          echo "### Untainting control-plane node... ###"
+          /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+
+          # Install flannel CNI
+          echo "### Installing flannel... ###"
+          /usr/bin/kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+          echo "### Post-init script finished. ###"
     - path: /home/core/.kube/config
       mode: 0644
 systemd:
@@ -99,7 +131,7 @@ systemd:
         [Service]
         Type=oneshot
         TimeoutStartSec=0
-        ExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl
+        ExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl containernetworking-plugins
         ExecStartPost=/usr/bin/touch /var/lib/%N.stamp
         
         [Install]

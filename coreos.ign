@@ -58,6 +58,14 @@
         "mode": 420
       },
       {
+        "path": "/etc/crio/crio.conf.d/01-cni.conf",
+        "contents": {
+          "compression": "",
+          "source": "data:;base64,W2NyaW8ubmV0d29ya10KcGx1Z2luX2RpcnMgPSBbCiAgIi91c3IvbGliZXhlYy9jbmkiCl0K"
+        },
+        "mode": 420
+      },
+      {
         "path": "/etc/kubernetes/kubeadm-config.yaml",
         "contents": {
           "compression": "gzip",
@@ -69,7 +77,7 @@
         "path": "/usr/local/bin/kubeadm-post-init.sh",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/3yPsU4EMQxE+3zFcGnJ5gtoQBxCSFDdB2QTc7HI2quNV/w+yl6BaOhszdjzxt/FmSX26joZAjnKVXHy3uPMwr1Swdc+UyoLWNju0cmM5Yp9PYSs8slXeO9PzuUVkSzHIWxCRj2msrBMw4WqC8WsG8VpGOLt1DmPi1hiMVglZBXbtIW1JSGIFoIpUmv6jVVLH9tM6LlS2RsVqIDNvV0en58+3s+vLw//IMS9b0fhA90abrkjpSOE1Noxh00bTb8vJtb4hyu4nwAAAP//6njSeTkBAAA="
+          "source": "data:;base64,H4sIAAAAAAAC/3STQU/cMBCF7/4VD4IqUJuY5QgCqUWlWiFRLqiHqgdvPNmMcOzInrDw7ysngaZa7SWy43nPb76RiyO9Ya9TqxIJSlJUtwHHRVHgjj2nliyehw0Z24E9yxckEmG/xdCPB3XwDW9RFMWxUt2z5Yiyh25DR7oOkXSVq1TdQ5PUOm+iJ6Gkje3YV1m/V64nV1W3YeeR/1/mz8E6Ra99iIL7p2/fb38+3K1/XB++TakCvwwLmhAhLeHr4xqJ4gtFSMCGEMnYtwWJXJ1bzoL7D8uFrqqqiQBfn6tdy45wBD2kOMIdMYnDlgQ+WEq40ZZetB+cw8XNp9UVbFAAX5+cnvLn1dlZ3jT4jRNGuRWsLvDnKkf1CgCmYIvUli18ENShozwX0whFXKBjPwil40n1yoKVAhpWQHJEPVbnyga/HPrCldMEYm5NFXjyYtjLCK0OXmJwZe+Mp7GtDM84F3bog00zylS3ZAdHFsGDZXHTbJa57nt9AN2DOCWYMJalcW5clzE4qv6Nu+Kg/3Mtc/61T5IVjTPek8Ptw3oRaD4dBz0VHE5h+t69oWzQivTpUustSztsqjp0ehaXHN6XOpIjkyhpZ4SSaBt23gVjR7/y/ba3zqlFnseQpMxvDqmO3Aua+UHOof4GAAD//3Aqea67AwAA"
         },
         "mode": 493
       },
@@ -82,7 +90,7 @@
   "systemd": {
     "units": [
       {
-        "contents": "[Unit]\nDescription=Install Kubernetes packages\nRequires=rpm-ostreed.service\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nTimeoutStartSec=0\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl\nExecStartPost=/usr/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
+        "contents": "[Unit]\nDescription=Install Kubernetes packages\nRequires=rpm-ostreed.service\nAfter=rpm-ostreed.service network-online.target\nWants=network-online.target\nConditionPathExists=!/var/lib/%N.stamp\n\n[Service]\nType=oneshot\nTimeoutStartSec=0\nExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl containernetworking-plugins\nExecStartPost=/usr/bin/touch /var/lib/%N.stamp\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "install-k8s.service"
       },
@@ -99,7 +107,7 @@
         "name": "qemu-guest-agent.service"
       },
       {
-        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nRequires=crio.service\nWants=kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs\nExecStartPost=/usr/local/bin/kubeadm-post-init.sh\n\n[Install]\nWantedBy=multi-user.target",
+        "contents": "[Unit]\nDescription=Initialize Kubernetes cluster\nRequires=crio.service\nWants=kubelet.service\nAfter=crio.service kubelet.service\nConditionPathExists=!/etc/kubernetes/admin.conf\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs\nExecStartPost=/usr/local/bin/kubeadm-post-init.sh\n\n[Install]\nWantedBy=multi-user.target\n",
         "enabled": true,
         "name": "kubeadm-init.service"
       }
