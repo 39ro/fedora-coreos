@@ -1,5 +1,5 @@
 variant: fcos
-version: 1.5.0
+version: 1.6.0
 passwd:
   users:
     - name: core
@@ -50,30 +50,26 @@ storage:
       mode: 0644
       contents:
         inline: |
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          kind: KubeletConfiguration
+          volumePluginDir: "/var/lib/kubelet/volumeplugins"
+          cgroupDriver: "systemd"
+          containerRuntimeEndpoint: "unix:///var/run/crio/crio.sock"
+          ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: InitConfiguration
           nodeRegistration:
             criSocket: "unix:///var/run/crio/crio.sock"
           ---
-          apiVersion: kubelet.config.k8s.io/v1beta1
-          kind: KubeletConfiguration
-          volumePluginDir: "/var/lib/kubelet/volumeplugins"
-          cgroupDriver: "systemd"
-          ---
           apiVersion: kubeadm.k8s.io/v1beta4
           kind: ClusterConfiguration
           networking:
             podSubnet: "10.244.0.0/16"
-
-    - path: /var/lib/kubelet/config.yaml
-      mode: 0644
-      contents:
-        inline: |
-          apiVersion: kubelet.config.k8s.io/v1beta1
-          kind: KubeletConfiguration
-          cgroupDriver: systemd
-          containerRuntimeEndpoint: "unix:///var/run/crio/crio.sock"
-
+          kubernetesVersion: 1.34.0
+          controllerManager:
+            extraArgs:
+              - name: flex-volume-plugin-dir
+                value: "/var/lib/kubelet/volumeplugins"
 systemd:
   units:
     - name: install-k8s.service
@@ -91,7 +87,6 @@ systemd:
         TimeoutStartSec=0
         ExecStart=/usr/bin/rpm-ostree install cri-o kubelet kubeadm kubectl
         ExecStartPost=/usr/bin/touch /var/lib/%N.stamp
-        ExecStartPost=/usr/bin/systemctl reboot
         
         [Install]
         WantedBy=multi-user.target
@@ -106,17 +101,24 @@ systemd:
       contents: |
         [Unit]
         Description=Initialize Kubernetes cluster
-        Requires=crio.service kubelet.service
+        Requires=crio.service
+        Wants=kubelet.service
         After=crio.service kubelet.service
         ConditionPathExists=!/etc/kubernetes/admin.conf
 
         [Service]
         Type=oneshot
+        ExecStartPre=/bin/echo "### CRIO status ###"
+        ExecStartPre=/usr/bin/systemctl --no-pager status crio.service
+        ExecStartPre=/bin/echo "### Kubelet status ###"
+        ExecStartPre=/usr/bin/systemctl --no-pager status kubelet.service
+        ExecStartPre=/bin/echo "### Starting kubeadm init ###"
         ExecStart=/usr/bin/kubeadm init --config /etc/kubernetes/kubeadm-config.yaml --upload-certs
+        ExecStartPost=/bin/echo "### Finished kubeadm init ###"
         ExecStartPost=/bin/mkdir -p /home/core/.kube
         ExecStartPost=/bin/cp -i /etc/kubernetes/admin.conf /home/core/.kube/config
         ExecStartPost=/bin/chown -R core:core /home/core/.kube
         ExecStartPost=/bin/bash -c "KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-"
-        
+
         [Install]
         WantedBy=multi-user.target
