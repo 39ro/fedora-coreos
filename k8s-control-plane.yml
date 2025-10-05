@@ -78,17 +78,12 @@ storage:
           set -e
           echo "### Finished kubeadm init, setting up kubeconfig ###"
           
-          # Set up kubeconfig for the core user on the node
-          mkdir -p /home/core/.kube
-          cp /etc/kubernetes/admin.conf /home/core/.kube/config
-          chown -R core:core /home/core/.kube
+          cp /etc/kubernetes/admin.conf home/core/.kube/config
           
           # Untaint the control-plane node to allow pods to be scheduled on it
           KUBECONFIG=/etc/kubernetes/admin.conf /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-          
-          # Copy admin.conf to the core user's home for easy scp access
-          cp /etc/kubernetes/admin.conf /home/core/admin.conf
-          chown core:core /home/core/admin.conf
+    - path: /home/core/.kube/config
+      mode: 0644
 systemd:
   units:
     - name: install-k8s.service

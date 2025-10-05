@@ -69,9 +69,13 @@
         "path": "/usr/local/bin/kubeadm-post-init.sh",
         "contents": {
           "compression": "gzip",
-          "source": "data:;base64,H4sIAAAAAAAC/4yQQWsjMQyF7/4V2viwl/X4vrCXDU0phRZa8gMcW8mYeCxjaQj598VOIElTSm8j6c17z5/+ZTcxWx4Vo4BBhX4kWGitYRVz5BED7OcNujBBzFH+AKNIzDuYSz94ytu4A631QikN7yifLluqICOCp4owM1ag3BeZAqppH2IFU8CONKFtIju0v5UvYFG8bUPNKMjWhSnmofneye0pTfmRDhnMW4/72zPvnJWGdRYXs5yLZamUTEkun1qBELiU6ACFArdpg8B+xDAnDK1/FPW8/v+wfH1ZPT3++67nzLUT7kQkwSm3pTAY41Lq36ZSwuFiMUSyN71Ma72kcoQrc6Fbsr8Z2ls7cnR8BPYFnPfI/HOcl+0Z5pckr1QfAQAA//+uQBooQwIAAA=="
+          "source": "data:;base64,H4sIAAAAAAAC/3yPsU4EMQxE+3zFcGnJ5gtoQBxCSFDdB2QTc7HI2quNV/w+yl6BaOhszdjzxt/FmSX26joZAjnKVXHy3uPMwr1Swdc+UyoLWNju0cmM5Yp9PYSs8slXeO9PzuUVkSzHIWxCRj2msrBMw4WqC8WsG8VpGOLt1DmPi1hiMVglZBXbtIW1JSGIFoIpUmv6jVVLH9tM6LlS2RsVqIDNvV0en58+3s+vLw//IMS9b0fhA90abrkjpSOE1Noxh00bTb8vJtb4hyu4nwAAAP//6njSeTkBAAA="
         },
         "mode": 493
+      },
+      {
+        "path": "/home/core/.kube/config",
+        "mode": 420
       }
     ]
   },

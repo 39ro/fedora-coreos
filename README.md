@@ -1,4 +1,3 @@
-
 # Kubernetes Control-Plane Node Configuration for Fedora CoreOS
 
 This document outlines the configuration for provisioning a single-node Kubernetes cluster on a Fedora CoreOS machine using Butane. The resulting node serves as both the control-plane and a worker, making it a complete, self-contained cluster.
@@ -11,58 +10,6 @@ This Butane configuration automates the entire setup process, including:
 *   Configuring the kernel and system services.
 *   Initializing the Kubernetes cluster with `kubeadm`.
 *   Automating post-installation steps for immediate usability.
-
-## Usage
-
-This is a Butane source file (`.bu`). It must be compiled into an Ignition file (`.ign`) before being provided to a Fedora CoreOS machine during its first boot.
-
----
-
-## Component Breakdown
-
-### `passwd`
-
-This section configures user access.
-
-*   **`users`**: Defines a user named `core`.
-*   **`ssh_authorized_keys`**: Grants SSH access to the `core` user by providing a public SSH key.
-*   **`groups`**: Adds the `core` user to the `wheel` group, which grants `sudo` privileges.
-
-### `storage`
-
-This section creates all the necessary configuration files on the node's filesystem.
-
-*   **/etc/hostname**: Sets the machine's hostname to `k8s-node`.
-*   **/etc/yum.repos.d/**: Adds the official package repositories for Kubernetes (`kubernetes.repo`) and the CRI-O container runtime (`cri-o.repo`). This allows the system to find and install these packages.
-*   **/etc/modules-load.d/k8s.conf**: Ensures the `overlay` and `br_netfilter` kernel modules are loaded on boot. These are required by the container runtime and for Kubernetes networking.
-*   **/etc/sysctl.d/k8s.conf**: Configures necessary kernel parameters for Kubernetes networking, specifically enabling IP forwarding and allowing `iptables` to see bridged traffic.
-*   **/etc/kubernetes/kubeadm-config.yaml**: This is the central configuration for the `kubeadm` tool.
-    *   **`KubeletConfiguration`**: Configures the `kubelet` to use the `systemd` cgroup driver, which is essential for proper resource management.
-    *   **`InitConfiguration`**: Tells `kubeadm` that the container runtime is CRI-O, specified via its socket path.
-    *   **`ClusterConfiguration`**: Defines cluster-wide settings, most importantly the `podSubnet` (`10.244.0.0/16`), which is the default network range for the Flannel CNI plugin.
-*   **/usr/local/bin/kubeadm-post-init.sh**: A helper script that automates all post-installation tasks. Placing it in `/usr/local/bin` ensures it has the correct SELinux context to be executed by `systemd`. The script performs the following:
-    1.  Creates a `.kube` directory for the `core` user.
-    2.  Copies the `admin.conf` file so the `core` user can immediately use `kubectl` on the node.
-    3.  Removes the `control-plane` taint from the node, allowing it to function as a worker and run application pods.
-    4.  Copies `admin.conf` to the `core` user's home directory for easy downloading with `scp`.
-
-### `systemd`
-
-This section defines and enables the `systemd` services that orchestrate the entire setup process.
-
-*   **`install-k8s.service`**:
-    *   **Purpose**: Runs **only on the first boot**.
-    *   **Action**: Uses `rpm-ostree` to install the `cri-o`, `kubelet`, `kubeadm`, and `kubectl` packages.
-    *   **Key Feature**: After the packages are installed, the Fedora CoreOS system **automatically reboots** to activate the new software deployment. A stamp file (`/var/lib/install-k8s.service.stamp`) is created to prevent this service from ever running again.
-*   **`crio.service` & `kubelet.service`**:
-    *   **Purpose**: Enables the container runtime and the Kubernetes node agent.
-    *   **Action**: Ensures these services are started automatically on boot (after the first-boot reboot).
-*   **`kubeadm-init.service`**:
-    *   **Purpose**: The main orchestrator that runs on the **second boot**.
-    *   **Action**:
-        1.  It `Requires` `crio.service` to be running and `Wants` `kubelet.service` to have started.
-        2.  It runs `kubeadm init` using the `/etc/kubernetes/kubeadm-config.yaml` file to bootstrap the Kubernetes cluster.
-        3.  Upon successful completion, it executes the `/usr/local/bin/kubeadm-post-init.sh` script to finalize the setup.
 
 ---
 
